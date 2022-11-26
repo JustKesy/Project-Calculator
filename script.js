@@ -40,7 +40,11 @@ function append(e) {
 
 function clear() {
   input.textContent = "0";
-  result.textContent = "0000";
+  result.textContent = "Result is:";
+  value1 = 0;
+  value2 = 0;
+  value3 = 0;
+  operSig = [];
 }
 
 let input = document.querySelector(".display");
@@ -58,18 +62,63 @@ let mathSigArr = [...mathSig];
 mathSigArr.forEach((sign) => sign.addEventListener("click", push));
 
 let value1;
-let operSig;
+let value2;
+let value3;
+let operSig = [];
 
 function push(e) {
-  value1 = input.textContent;
-  operSig = e.target.textContent;
-  input.textContent = "0";
+  operSig.push(e.target.textContent);
+
+  if (operSig.length === 1) {
+    value1 = input.textContent;
+    input.textContent = 0;
+  } else if (operSig.length <= 2) {
+    value2 = input.textContent;
+    if (operSig[1] === "*" || operSig[1] === "/") {
+      value3 = value2;
+      value2 = 0;
+      input.textContent = 0;
+    } else {
+      value1 = operate(+value1, +value2, operSig[0]);
+      operSig.shift(operSig[0]);
+      value2 = 0;
+      input.textContent = 0;
+    }
+  } else if (operSig.length === 3) {
+    value2 = input.textContent;
+    if (operSig[2] === "*" || operSig[2] === "/") {
+      value3 = operate(+value2, +value3, operSig[1]);
+      operSig.splice(1, 1);
+      value2 = 0;
+      input.textContent = 0;
+    } else if (operSig[2] === "+" || operSig[2] === "-") {
+      value3 = operate(+value2, +value3, operSig[1]);
+      value1 = operate(+value1, +value3, operSig[0]);
+      operSig.splice(0, 2);
+      value2 = 0;
+      value3 = 0;
+      input.textContent = 0;
+    }
+  }
 }
 
 let result = document.querySelector(".result");
-
+function calculate() {
+  if (
+    value3 !== null &&
+    operSig.length === 2 &&
+    (operSig[1] === "*" || operSig[1] === "/")
+  ) {
+    value3 = operate(+value3, +input.textContent, operSig[1]);
+    return (result.textContent += operate(+value1, +value3, operSig[0]));
+  } else if (operSig.length === 2) {
+    value2 = operate(+value2, +input.textContent, operSig[1]);
+    return (result.textContent += operate(+value1, +value2, operSig[0]));
+  } else if (value2 === true) {
+    return (result.textContent += operate(+value1, +value2, operSig[0]));
+  } else {
+    result.textContent += operate(+value1, +input.textContent, operSig[0]);
+  }
+}
 let equl = document.querySelector(".eq");
-equl.addEventListener(
-  "click",
-  () => (result.textContent = operate(+value1, +input.textContent, operSig))
-);
+equl.addEventListener("click", calculate);
